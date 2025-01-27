@@ -1,8 +1,7 @@
 services:
   app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: raulbrennersc/devcontainer
+    build: .
       
     volumes:
       - ../..:/workspaces:cached
