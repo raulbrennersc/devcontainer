@@ -36,11 +36,21 @@ RUN chmod +x /usr/local/bin/*
 RUN chsh vscode -s $(which zsh)
 
 USER vscode
-
 WORKDIR /home/vscode
 
-RUN mkdir -p .android
-COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
+#Install homebrew
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+#Install ruby
+RUN brew install ruby@3.3
+ENV PATH="/home/linuxbrew/.linuxbrew/opt/ruby@3.3/bin:$PATH"
+
+#Install cocoapods
+RUN gem install cocoapods
+
+#Install bundler
+RUN gem install bundler -v 2.5.9
 
 #Install google cloud cli
 RUN wget https://sdk.cloud.google.com -O install.sh
@@ -57,6 +67,8 @@ RUN rm -rf install.sh
 RUN wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.2.2.13/android-studio-2024.2.2.13-linux.tar.gz -O android-studio.tar.gz
 RUN tar xzvf android-studio.tar.gz
 RUN rm android-studio.tar.gz
+RUN mkdir -p .android
+COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 
 #Set vars
 ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
