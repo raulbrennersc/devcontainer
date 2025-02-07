@@ -4,8 +4,7 @@ services:
     build: .
       
     volumes:
-      - ../..:/workspaces:cached
-      - ~/.ssh:/home/vscode/.ssh:cached
+      - ../:/workspaces:cached
 
     devices: 
        - /dev/kvm:/dev/kvm 

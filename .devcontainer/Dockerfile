@@ -40,10 +40,10 @@ WORKDIR /home/vscode
 
 #Install homebrew
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 #Install ruby
-RUN brew install ruby@3.3
+RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install ruby@3.3
+
 ENV PATH="/home/linuxbrew/.linuxbrew/opt/ruby@3.3/bin:$PATH"
 
 #Install cocoapods
