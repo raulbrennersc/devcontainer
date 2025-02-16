@@ -1,45 +1,33 @@
-FROM mcr.microsoft.com/devcontainers/base:debian
+ARG VARIANT="bookworm"
+FROM debian:${VARIANT}
 
-ARG ANDROID_STUDIO_USER=android
+ARG USERNAME="${USERNAME:-"dev"}"
+ARG USER_UID="${USERUID:-"1000"}"
+ARG USER_GID="${USER_GID:-"1000"}"
 
 RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y \
-        build-essential git wget unzip sudo \
+        build-essential git wget unzip sudo curl \
         libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
         libxrender1 libxtst6 libxi6 libfreetype6 libxft2 xz-utils acl\
         qemu-system qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils libnotify4 libglu1 libqt5widgets5 openjdk-17-jdk xvfb \
         && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN groupadd -g 1001 -r $ANDROID_STUDIO_USER
-RUN useradd -u 1001 -g 1001 --create-home -r $ANDROID_STUDIO_USER
-RUN adduser $ANDROID_STUDIO_USER libvirt
 
-RUN echo "$ANDROID_STUDIO_USER:$ANDROID_STUDIO_USER" | chpasswd
-RUN echo "${ANDROID_STUDIO_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-$ANDROID_STUDIO_USER
-RUN echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-vscode
-RUN usermod -aG sudo $ANDROID_STUDIO_USER
-RUN usermod -aG plugdev $ANDROID_STUDIO_USER
-RUN mkdir -p /androidstudio-data
-VOLUME /androidstudio-data
-RUN chown $ANDROID_STUDIO_USER:$ANDROID_STUDIO_USER /androidstudio-data
+RUN groupadd --gid $USER_GID $USERNAME
+RUN useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME --create-home
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
+RUN chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN mkdir -p /studio-data/Android/Sdk && \
-    chown -R $ANDROID_STUDIO_USER:$ANDROID_STUDIO_USER /studio-data/Android
-
-RUN mkdir -p /studio-data/profile/android && \
-    chown -R $ANDROID_STUDIO_USER:$ANDROID_STUDIO_USER /studio-data/profile
-
-COPY android-studio/start_android_studio.sh /usr/local/bin/start_android_studio.sh
-RUN chmod +x /usr/local/bin/*
-
-RUN chsh vscode -s $(which zsh)
-
-USER vscode
-WORKDIR /home/vscode
+USER $USERNAME
+WORKDIR /home/$USERNAME
 
 #Install homebrew
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+RUN wget https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -O install.sh
+RUN NONINTERACTIVE=1 bash install.sh
+RUN rm -rf install.sh
+RUN echo "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"" >> /home/${USERNAME}/.bashrc
 
 #Install ruby
 RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install ruby@3.3
@@ -56,23 +44,32 @@ RUN gem install bundler -v 2.5.9
 RUN wget https://sdk.cloud.google.com -O install.sh
 RUN bash install.sh --disable-prompts
 RUN rm -rf install.sh
-RUN echo "source /home/vscode/google-cloud-sdk/path.zsh.inc" >> /home/vscode/.profile
+RUN echo "source /home/${USERNAME}/google-cloud-sdk/path.bash.inc" >> /home/${USERNAME}/.bashrc
 
 #Install nvm
 RUN wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -O install.sh
 RUN bash install.sh --no-use
 RUN rm -rf install.sh
 
-#Install android Studio
-RUN wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.2.2.13/android-studio-2024.2.2.13-linux.tar.gz -O android-studio.tar.gz
-RUN tar xzvf android-studio.tar.gz
-RUN rm android-studio.tar.gz
+#Install android cmdline tools
+RUN mkdir -p Android/Sdk/cmdline-tools
 RUN mkdir -p .android
+
+RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+RUN unzip ./cmdline-tools.zip -d .
+RUN mv ./cmdline-tools/ ./Android/Sdk/cmdline-tools/latest
+RUN rm -rf ./cmdline-tools.zip
+
+RUN wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools.zip
+RUN unzip ./platform-tools.zip -d .
+RUN mv ./platform-tools/ ./Android/Sdk/platform-tools
+RUN rm -rf ./platform-tools.zip
+
 COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 
 #Set vars
 ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
-ENV ANDROID_SDK_ROOT=/home/vscode/Android/Sdk
-ENV ANDROID_HOME=/home/vscode/Android/Sdk
-ENV PATH="$PATH:/home/vscode/Android/Sdk/platform-tools"
+ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
+ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
+ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin"
 ENV DISPLAY=:0

@@ -1,12 +1,17 @@
 services:
-  app:
-    image: raulbrennersc/devcontainer
-    build: .
+  devcontainer:
+    image: raulbrennersc/devcontainer:latest
+    build:
+      # dockerfile: Dockerfile
+      context: .
+      args:
+        USERNAME: ${USER}
       
     volumes:
       - ../:/workspaces:cached
 
     devices: 
+      # Needs "X11Forwarding yes" on /etc/ssh/sshd_config and "systemctl start sshd"
        - /dev/kvm:/dev/kvm 
       # Uncomment next line to enable debug using external mobile device (not working properly)
       #  - /dev/bus/usb:/dev/bus/usb
