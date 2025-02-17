@@ -20,6 +20,19 @@ RUN useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME --create-h
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
 RUN chmod 0440 /etc/sudoers.d/$USERNAME
 
+RUN adduser $USERNAME libvirt
+RUN adduser $USERNAME kvm
+
+RUN mkdir -p /emulator-data
+VOLUME /emulator-data
+RUN chown $USERNAME:$USERNAME /emulator-data
+
+RUN mkdir -p /emulator-data/Android/Sdk/cmdline-tools && \
+    chown -R $USERNAME:$USERNAME /emulator-data/Android
+
+RUN mkdir -p /emulator-data/profile/.android /emulator-data/profile/.gradle /emulator-data/profile/.java && \
+    chown -R $USERNAME:$USERNAME /emulator-data/profile
+
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
@@ -40,7 +53,7 @@ RUN gem install cocoapods
 #Install bundler
 RUN gem install bundler -v 2.5.9
 
-#Install google cloud cli
+# Install google cloud cli
 RUN wget https://sdk.cloud.google.com -O install.sh
 RUN bash install.sh --disable-prompts
 RUN rm -rf install.sh
@@ -52,8 +65,10 @@ RUN bash install.sh --no-use
 RUN rm -rf install.sh
 
 #Install android cmdline tools
-RUN mkdir -p Android/Sdk/cmdline-tools
-RUN mkdir -p .android
+RUN ln -s /emulator-data/Android Android
+RUN ln -s /emulator-data/profile/.android .android
+RUN ln -s /emulator-data/profile/.java .java
+RUN ln -s /emulator-data/profile/.gradle .gradle
 
 RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
 RUN unzip ./cmdline-tools.zip -d .
@@ -71,5 +86,5 @@ COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
 ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
 ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
-ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin"
+ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
 ENV DISPLAY=:0

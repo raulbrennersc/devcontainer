@@ -8,11 +8,14 @@ services:
         USERNAME: ${USER}
       
     volumes:
+      # Needs "systemctl start sshd"
       - ../:/workspaces:cached
+      - /tmp/.X-11-unix:/tmp/.X11-unix
+    privileged: true
+    group_add:
+      - plugdev
 
-    devices: 
-      # Needs "X11Forwarding yes" on /etc/ssh/sshd_config and "systemctl start sshd"
-       - /dev/kvm:/dev/kvm 
+    # devices: 
       # Uncomment next line to enable debug using external mobile device (not working properly)
       #  - /dev/bus/usb:/dev/bus/usb
 
