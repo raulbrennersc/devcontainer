@@ -1,5 +1,0 @@
-/*
-!.devcontainer/
-!.devcontainer/*
-.devcontainer/.devpod-internal/*
-!.gitignore
