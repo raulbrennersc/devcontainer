@@ -9,7 +9,7 @@ services:
       
     volumes:
       # Needs "systemctl start sshd"
-      - ../:/workspaces:cached
+      - ${DEVCONTAINER_WORKSPACE}:/workspaces
       - /tmp/.X-11-unix:/tmp/.X11-unix
     privileged: true
     group_add:
