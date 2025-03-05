@@ -6,10 +6,9 @@ services:
       context: .
       args:
         USERNAME: ${USER}
-      
+
     volumes:
       # Needs "systemctl start sshd"
-      - ${DEVCONTAINER_WORKSPACE}:/workspaces
       - /tmp/.X-11-unix:/tmp/.X11-unix
     privileged: true
     group_add:
