@@ -89,4 +89,7 @@ ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
 ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
 ENV DISPLAY=:0
 ENV DEVCONTAINER=1
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
