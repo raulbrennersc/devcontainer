@@ -15,70 +15,37 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-RUN groupadd --gid $USER_GID $USERNAME
-RUN useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME --create-home
-RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
-RUN chmod 0440 /etc/sudoers.d/$USERNAME
+RUN groupadd --gid $USER_GID $USERNAME && \
+  useradd -s /bin/bash --uid $USER_UID --gid $USERNAME -m $USERNAME --create-home && \
+  echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
+  chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN adduser $USERNAME libvirt
-RUN adduser $USERNAME kvm
-
-RUN mkdir -p /emulator-data
-VOLUME /emulator-data
-RUN chown $USERNAME:$USERNAME /emulator-data
-
-RUN mkdir -p /emulator-data/Android/Sdk/cmdline-tools && \
-    chown -R $USERNAME:$USERNAME /emulator-data/Android
-
-RUN mkdir -p /emulator-data/profile/.android /emulator-data/profile/.gradle /emulator-data/profile/.java && \
-    chown -R $USERNAME:$USERNAME /emulator-data/profile
+RUN adduser $USERNAME libvirt && adduser $USERNAME kvm
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
-#Install homebrew
-RUN wget https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -O install.sh
-RUN NONINTERACTIVE=1 bash install.sh
-RUN rm -rf install.sh
-RUN echo "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"" >> /home/${USERNAME}/.bashrc
-
-#Install ruby
-RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install ruby@3.3
-
-ENV PATH="/home/linuxbrew/.linuxbrew/opt/ruby@3.3/bin:$PATH"
-
-#Install cocoapods
-RUN gem install cocoapods
-
-#Install bundler
-RUN gem install bundler -v 2.5.9
-
 # Install google cloud cli
-RUN wget https://sdk.cloud.google.com -O install.sh
-RUN bash install.sh --disable-prompts
-RUN rm -rf install.sh
-RUN echo "source /home/${USERNAME}/google-cloud-sdk/path.bash.inc" >> /home/${USERNAME}/.bashrc
+RUN wget --progress=dot:giga https://sdk.cloud.google.com -O install.sh && \
+  bash install.sh --disable-prompts && \
+  rm -rf install.sh && \
+  echo "source /home/${USERNAME}/google-cloud-sdk/path.bash.inc" >> /home/${USERNAME}/.bashrc
 
 #Install nvm
-RUN wget https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -O install.sh
-RUN bash install.sh --no-use
-RUN rm -rf install.sh
+RUN wget --progress=dot:giga https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -O install.sh && \
+  bash install.sh --no-use && \
+  rm -rf install.sh
 
 #Install android cmdline tools
-RUN ln -s /emulator-data/Android Android
-RUN ln -s /emulator-data/profile/.android .android
-RUN ln -s /emulator-data/profile/.java .java
-RUN ln -s /emulator-data/profile/.gradle .gradle
+RUN mkdir -p Android/Sdk/cmdline-tools .android .gradle .java
 
-RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-RUN unzip ./cmdline-tools.zip -d .
-RUN mv ./cmdline-tools/ ./Android/Sdk/cmdline-tools/latest
-RUN rm -rf ./cmdline-tools.zip
+RUN wget --progress=dot:giga https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip && \
+  unzip ./cmdline-tools.zip -d ./Android/Sdk && \
+  rm -rf ./cmdline-tools.zip
 
-RUN wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools.zip
-RUN unzip ./platform-tools.zip -d .
-RUN mv ./platform-tools/ ./Android/Sdk/platform-tools
-RUN rm -rf ./platform-tools.zip
+RUN wget --progress=dot:giga https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools.zip && \
+  unzip ./platform-tools.zip -d ./Android/Sdk && \
+  rm -rf ./platform-tools.zip
 
 COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 
@@ -86,7 +53,7 @@ COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
 ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
 ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
-ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
+ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/bin:/home/${USERNAME}/Android/Sdk/emulator"
 ENV DISPLAY=:0
 ENV DEVCONTAINER=1
 ENV LANG=en_US.UTF-8
