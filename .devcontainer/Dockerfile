@@ -20,7 +20,7 @@ RUN groupadd --gid $USER_GID $USERNAME && \
   echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
   chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN adduser $USERNAME libvirt && adduser $USERNAME kvm
+RUN adduser $USERNAME libvirt && adduser $USERNAME plugdev && adduser $USERNAME kvm
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
@@ -40,7 +40,8 @@ RUN wget --progress=dot:giga https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.
 RUN mkdir -p Android/Sdk/cmdline-tools .android .gradle .java
 
 RUN wget --progress=dot:giga https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip && \
-  unzip ./cmdline-tools.zip -d ./Android/Sdk && \
+  unzip ./cmdline-tools.zip -d . && \
+  mv cmdline-tools ./Android/Sdk/cmdline-tools/latest && \
   rm -rf ./cmdline-tools.zip
 
 RUN wget --progress=dot:giga https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools.zip && \
@@ -52,8 +53,9 @@ COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 #Set vars
 ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
 ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
+ENV ANDROID_SDK_HOME=/home/${USERNAME}/Android/Sdk
 ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
-ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/bin:/home/${USERNAME}/Android/Sdk/emulator"
+ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
 ENV DISPLAY=:0
 ENV DEVCONTAINER=1
 ENV LANG=en_US.UTF-8
