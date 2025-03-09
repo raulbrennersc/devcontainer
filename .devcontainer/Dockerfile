@@ -22,6 +22,11 @@ RUN groupadd --gid $USER_GID $USERNAME && \
 
 RUN adduser $USERNAME libvirt && adduser $USERNAME plugdev && adduser $USERNAME kvm
 
+#Install docker
+RUN curl -fsSL https://get.docker.com | bash -s && \
+  usermod -aG docker $USERNAME && \
+  newgrp docker
+
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
@@ -62,3 +67,4 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
+CMD sudo service docker start && sleep infinity
