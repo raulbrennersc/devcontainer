@@ -17,3 +17,5 @@ fi
 
 sudo /etc/init.d/ssh start
 # sudo /etc/init.d/docker start
+
+sleep infinity
