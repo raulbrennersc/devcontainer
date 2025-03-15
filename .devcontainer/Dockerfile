@@ -7,12 +7,12 @@ ARG USER_GID="${USER_GID:-"1000"}"
 
 RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y \
-        build-essential git wget unzip sudo curl locales locales-all xclip openssh-server\
-        libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
-        libxrender1 libxtst6 libxi6 libfreetype6 libxft2 xz-utils acl\
-        qemu-system qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils libnotify4 libglu1 libqt5widgets5 openjdk-17-jdk xvfb \
-        && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  build-essential git wget unzip sudo curl locales locales-all xclip openssh-server vim\
+  libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
+  libxrender1 libxtst6 libxi6 libfreetype6 libxft2 xz-utils acl\
+  qemu-system qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils libnotify4 libglu1 libqt5widgets5 openjdk-17-jdk xvfb \
+  && \
+  apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
 RUN groupadd --gid $USER_GID $USERNAME && \
@@ -49,12 +49,16 @@ RUN echo "LANG=$LANG" >> /etc/environment
 RUN echo "LANGUAGE=$LANGUAGE" >> /etc/environment
 RUN echo "LC_ALL=$LC_ALL" >> /etc/environment
 
-#Install docker cli
+#Install docker
 ENV DOCKERVERSION=28.0.1
 RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
   && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 \
-                 -C /usr/local/bin docker/docker \
+  -C /usr/local/bin docker/docker \
   && rm docker-${DOCKERVERSION}.tgz
+
+#RUN curl -fsSL https://get.docker.com | bash -s && \
+#  usermod -aG docker $USERNAME && \
+#  newgrp docker
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
@@ -85,4 +89,4 @@ RUN wget --progress=dot:giga https://dl.google.com/android/repository/platform-t
 COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 COPY scripts/start-container.sh start-container.sh
 
-CMD sleep infinity
+CMD ~/start-container.sh

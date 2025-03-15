@@ -16,3 +16,4 @@ if [ ! -f already_ran ]; then
 fi
 
 sudo /etc/init.d/ssh start
+# sudo /etc/init.d/docker start
