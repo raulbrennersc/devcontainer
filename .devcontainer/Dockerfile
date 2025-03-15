@@ -7,7 +7,7 @@ ARG USER_GID="${USER_GID:-"1000"}"
 
 RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y \
-        build-essential git wget unzip sudo curl locales locales-all xclip\
+        build-essential git wget unzip sudo curl locales locales-all xclip openssh-server\
         libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
         libxrender1 libxtst6 libxi6 libfreetype6 libxft2 xz-utils acl\
         qemu-system qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils libnotify4 libglu1 libqt5widgets5 openjdk-17-jdk xvfb \
@@ -22,10 +22,39 @@ RUN groupadd --gid $USER_GID $USERNAME && \
 
 RUN adduser $USERNAME libvirt && adduser $USERNAME plugdev && adduser $USERNAME kvm
 
-#Install docker
-RUN curl -fsSL https://get.docker.com | bash -s && \
-  usermod -aG docker $USERNAME && \
-  newgrp docker
+#Change ssh port
+RUN sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config
+RUN sed -i 's/#AuthorizedKeysFile/AuthorizedKeysFile/' /etc/ssh/sshd_config
+
+#Set vars
+ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
+ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
+ENV ANDROID_SDK_HOME=/home/${USERNAME}/Android/Sdk
+ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
+ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
+ENV DISPLAY=:0
+ENV DEVCONTAINER=1
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+RUN echo "ANDROID_EMULATOR_USE_SYSTEM_LIBS=$ANDROID_EMULATOR_USE_SYSTEM_LIBS" >> /etc/environment
+RUN echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> /etc/environment
+RUN echo "ANDROID_SDK_HOME=$ANDROID_SDK_HOME" >> /etc/environment
+RUN echo "ANDROID_HOME=$ANDROID_HOME" >> /etc/environment
+RUN echo "PATH=$PATH" >> /etc/environment
+RUN echo "DISPLAY=$DISPLAY" >> /etc/environment
+RUN echo "DEVCONTAINER=$DEVCONTAINER" >> /etc/environment
+RUN echo "LANG=$LANG" >> /etc/environment
+RUN echo "LANGUAGE=$LANGUAGE" >> /etc/environment
+RUN echo "LC_ALL=$LC_ALL" >> /etc/environment
+
+#Install docker cli
+ENV DOCKERVERSION=28.0.1
+RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
+  && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 \
+                 -C /usr/local/bin docker/docker \
+  && rm docker-${DOCKERVERSION}.tgz
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
@@ -54,17 +83,6 @@ RUN wget --progress=dot:giga https://dl.google.com/android/repository/platform-t
   rm -rf ./platform-tools.zip
 
 COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
+COPY scripts/start-container.sh start-container.sh
 
-#Set vars
-ENV ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
-ENV ANDROID_SDK_ROOT=/home/${USERNAME}/Android/Sdk
-ENV ANDROID_SDK_HOME=/home/${USERNAME}/Android/Sdk
-ENV ANDROID_HOME=/home/${USERNAME}/Android/Sdk
-ENV PATH="$PATH:/home/${USERNAME}/google-cloud-sdk/bin:/home/${USERNAME}/Android/Sdk/platform-tools:/home/${USERNAME}/Android/Sdk/cmdline-tools/latest/bin:/home/${USERNAME}/Android/Sdk/emulator"
-ENV DISPLAY=:0
-ENV DEVCONTAINER=1
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
-
-CMD sudo service docker start && sleep infinity
+CMD sleep infinity
