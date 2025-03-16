@@ -63,6 +63,9 @@ RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
+RUN  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+
 # Install google cloud cli
 RUN wget --progress=dot:giga https://sdk.cloud.google.com -O install.sh && \
   bash install.sh --disable-prompts && \
