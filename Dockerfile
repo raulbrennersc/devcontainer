@@ -50,21 +50,12 @@ RUN echo "LANGUAGE=$LANGUAGE" >> /etc/environment
 RUN echo "LC_ALL=$LC_ALL" >> /etc/environment
 
 #Install docker
-ENV DOCKERVERSION=28.0.1
-RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
-  && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 \
-  -C /usr/local/bin docker/docker \
-  && rm docker-${DOCKERVERSION}.tgz
-
-#RUN curl -fsSL https://get.docker.com | bash -s && \
-#  usermod -aG docker $USERNAME && \
-#  newgrp docker
+RUN curl -fsSL https://get.docker.com | bash -s
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
-RUN  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install google cloud cli
 RUN wget --progress=dot:giga https://sdk.cloud.google.com -O install.sh && \
@@ -91,5 +82,9 @@ RUN wget --progress=dot:giga https://dl.google.com/android/repository/platform-t
 
 COPY android-studio/advancedFeatures.ini .android/advancedFeatures.ini
 COPY scripts/start-container.sh start-container.sh
+
+RUN echo "source /etc/environment" >>.bash_profile
+RUN echo "source ~/.bashrc" >>.bash_profile
+RUN echo "sudo chown -R ${USERNAME}:${USERNAME} /var/run/docker.sock" >>.bash_profile
 
 CMD ~/start-container.sh
