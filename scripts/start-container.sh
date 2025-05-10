@@ -14,7 +14,8 @@ if [ ! -f already_ran ]; then
   touch already_ran
 
 fi
-
+sudo chown -R ${USER}:${USER} /var/run/docker.sock
+sudo chown :kvm /dev/kvm
 sudo /etc/init.d/ssh start
 # sudo /etc/init.d/docker start
 
