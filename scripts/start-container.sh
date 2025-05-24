@@ -11,6 +11,10 @@ if [ ! -f already_ran ]; then
     sudo sed -i 's/#AuthorizedKeysFile/AuthorizedKeysFile/' /etc/ssh/sshd_config
   fi
 
+  if [[ $DEVCONTAINER_NAME ]]; then
+    echo "export DEVCONTAINER_NAME=$DEVCONTAINER_NAME" >>.zprofile
+  fi
+
   touch already_ran
 
 fi
