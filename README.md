@@ -31,7 +31,6 @@ This devcontainer image comes with a robust set of preinstalled and preconfigure
 - 🧠 **NVM (Node Version Manager)** — manage Node.js versions easily  
 - 🧰 **Git** — ready for cloning and version control operations  
 - 🐧 **SSH server** — exposes port **2222** for remote container access  
-- 📱 **Android Studio Command Line Tools** — enables Android emulator usage directly within the container  
 - 🔄 **Custom shell configuration** — easily extensible when combined with [dotfiles scripts](https://github.com/raulbrennersc/dotfiles)
 
 When used alongside the [`dotfiles`](https://github.com/raulbrennersc/dotfiles) repository, you also get:
