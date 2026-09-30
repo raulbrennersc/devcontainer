@@ -15,6 +15,10 @@ if [ ! -f already_ran ]; then
     echo "export DEVCONTAINER_NAME=$DEVCONTAINER_NAME" >>~/.bashrc
   fi
 
+  if [[ $DEVCONTAINER_NAME ]]; then
+    sudo sh -c "echo 'DEVCONTAINER_NAME=\"$DEVCONTAINER_NAME\"' >> /etc/environment"
+  fi
+
   touch already_ran
 fi
 
